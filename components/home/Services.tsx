@@ -1,5 +1,6 @@
-'use client';
+"use client";
 import React from 'react';
+import { useRouter } from 'next/navigation';
 
 // Define types to satisfy TypeScript build
 interface SectionHeadingProps {
@@ -35,6 +36,7 @@ function Card({ children, onClick, className = "" }: CardProps) {
 }
 
 export default function Services() {
+  const router = useRouter();
   // Sample service categories data
   const categories = [
     {
@@ -82,9 +84,8 @@ export default function Services() {
   ];
 
   const handleCategoryClick = (categorySlug: string) => {
-    // In production, use your router
-    // router.push(`/services/category/${categorySlug}`);
-    console.log(`Navigating to: /services/category/${categorySlug}`);
+    // Navigate to category page
+    router.push(`/services/category/${categorySlug}`);
   };
 
   return (
@@ -170,7 +171,10 @@ export default function Services() {
                 <p className="text-sm text-slate-300 mb-4 leading-relaxed">
                   {category.description}
                 </p>
-                <button className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white py-3 rounded-lg hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-cyan-500/30 transform hover:-translate-y-0.5">
+                <button
+                  onClick={() => handleCategoryClick(category.slug)}
+                  className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white py-3 rounded-lg hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-cyan-500/30 transform hover:-translate-y-0.5"
+                >
                   Explore Services →
                 </button>
               </Card>
