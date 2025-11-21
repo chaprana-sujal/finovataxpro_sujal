@@ -226,7 +226,7 @@ export default function Services() {
               <h4 className="text-lg font-bold text-white mb-1">Quick Access</h4>
               <p className="text-sm text-slate-300 mb-3">View your cart</p>
               <button 
-                onClick={() => router.push('/dashboard')}
+                onClick={() => router.push('/checkout')}
                 className="text-cyan-400 hover:text-cyan-300 text-sm font-medium"
               >
                 Go to Cart →
@@ -250,7 +250,7 @@ export default function Services() {
               <h4 className="text-lg font-bold text-white mb-1">Dashboard</h4>
               <p className="text-sm text-slate-300 mb-3">Full overview</p>
               <button 
-                onClick={() => router.push('/dashboard')}
+                onClick={() => router.push('/user_dashboard')}
                 className="text-green-400 hover:text-green-300 text-sm font-medium"
               >
                 Open Dashboard →
