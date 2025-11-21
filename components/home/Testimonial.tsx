@@ -2,6 +2,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import SectionHeading from '../ui/SectionHeading';
+import ClientButton from '../ui/client_button';
 
 export default function Testimonials() {
   const testimonials = [
@@ -270,9 +271,12 @@ export default function Testimonials() {
         {/* Bottom CTA */}
         <div className="mt-12 text-center">
           <p className="text-gray-600 mb-4">Join thousands of satisfied clients</p>
-          <button className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition font-semibold shadow-lg">
+          {/* <button className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition font-semibold shadow-lg">
             Get Your Free Consultation
-          </button>
+          </button> */}
+          <ClientButton className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition font-semibold shadow-lg">
+  Get Your Free Consultation
+</ClientButton>
         </div>
       </div>
     </section>

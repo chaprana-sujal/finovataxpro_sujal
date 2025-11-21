@@ -164,7 +164,7 @@ export default function CTA() {
                   </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-5">
+                <form onSubmit={handleSubmit} className="space-y-5" suppressHydrationWarning>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Full Name *
@@ -177,6 +177,7 @@ export default function CTA() {
                       required
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                       placeholder="Enter your full name"
+                      suppressHydrationWarning
                     />
                   </div>
 
@@ -192,6 +193,7 @@ export default function CTA() {
                       required
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                       placeholder="your@email.com"
+                      suppressHydrationWarning
                     />
                   </div>
 
@@ -208,6 +210,7 @@ export default function CTA() {
                       pattern="[0-9]{10}"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                       placeholder="+91 98765 43210"
+                      suppressHydrationWarning
                     />
                   </div>
 
@@ -221,6 +224,7 @@ export default function CTA() {
                       onChange={handleChange}
                       required
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                      suppressHydrationWarning
                     >
                       <option value="">Select a service</option>
                       <option value="company-registration">Company Registration</option>
@@ -237,6 +241,7 @@ export default function CTA() {
                     type="submit"
                     disabled={loading}
                     className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 rounded-lg hover:from-blue-700 hover:to-blue-800 transition font-semibold text-lg shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    suppressHydrationWarning
                   >
                     {loading ? (
                       <span className="flex items-center justify-center">

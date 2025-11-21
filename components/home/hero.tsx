@@ -578,7 +578,7 @@
 "use client"
 import React, { useState } from 'react';
 
-// Hero Component with Updated Background
+// Hero Component with Hydration Fix
 export default function Hero() {
   const [email, setEmail] = useState('');
 
@@ -668,6 +668,8 @@ export default function Hero() {
                   if (servicesSection) {
                     servicesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   }}}
+                data-form-type="other"
+                suppressHydrationWarning
                 className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-8 py-4 rounded-lg hover:from-cyan-600 hover:to-blue-700 transition text-lg font-semibold shadow-lg hover:shadow-cyan-500/30 transform hover:-translate-y-0.5"
               >
                 Explore Services
@@ -679,6 +681,8 @@ export default function Hero() {
                     ctaSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   }
                 }}
+                data-form-type="other"
+                suppressHydrationWarning
                 className="border-2 border-cyan-400 text-cyan-300 px-8 py-4 rounded-lg hover:bg-cyan-500/10 backdrop-blur-sm transition text-lg font-semibold"
               >
                 Talk to Expert
@@ -692,10 +696,15 @@ export default function Hero() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
+                  data-form-type="other"
+                  autoComplete="off"
+                  suppressHydrationWarning
                   className="flex-1 px-4 py-3 bg-white/90 border border-slate-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
                 />
                 <button
                   onClick={handleGetStarted}
+                  data-form-type="other"
+                  suppressHydrationWarning
                   className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-cyan-600 hover:to-blue-700 transition font-semibold whitespace-nowrap shadow-lg hover:shadow-cyan-500/30"
                 >
                   Get Started →

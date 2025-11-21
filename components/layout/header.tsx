@@ -338,13 +338,41 @@ export default function Header() {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [activeMobileMenu, setActiveMobileMenu] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+ const [mounted, setMounted] = useState(false);
+ const [cartCount, setCartCount] = useState(0);
 
   useEffect(() => {
+    setMounted(true);
     // Check login status
     if (typeof window !== 'undefined') {
       setIsLoggedIn(localStorage.getItem('isLoggedIn') === 'true');
+      updateCartCount();
+      
+      // Listen for cart updates
+      const handleStorageChange = () => {
+        updateCartCount();
+      };
+      window.addEventListener('storage', handleStorageChange);
+      
+      // Custom event for same-tab cart updates
+      window.addEventListener('cartUpdated', handleStorageChange);
+      
+      return () => {
+        window.removeEventListener('storage', handleStorageChange);
+        window.removeEventListener('cartUpdated', handleStorageChange);
+   
+    };
+  }
+},
+   []
+  );
+
+  const updateCartCount = () => {
+    if (typeof window !== 'undefined') {
+      const items = localStorage.getItem('cartItems');
+      setCartCount(items ? JSON.parse(items).length : 0);
     }
-  }, []);
+  };
 
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
@@ -533,7 +561,9 @@ export default function Header() {
                 onMouseEnter={() => setActiveMenu(category)}
                 onMouseLeave={() => setActiveMenu(null)}
               >
-                <button className="px-3 py-2 text-slate-200 hover:text-cyan-300 transition text-sm font-medium flex items-center">
+                <button 
+                suppressHydrationWarning
+                className="px-3 py-2 text-slate-200 hover:text-cyan-300 transition text-sm font-medium flex items-center">
                   {category}
                   <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -559,14 +589,37 @@ export default function Header() {
             ))}
             
             {/* User Account / Login */}
-            {isLoggedIn ? (
-              <div className="flex items-center space-x-3">
-                <div className="flex items-center space-x-2 px-3 py-2 text-slate-200">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                  <span className="text-sm font-medium">Account</span>
-                </div>
+            {mounted && (
+              <>
+                {isLoggedIn ? (
+                  <div className="flex items-center space-x-3">
+                    {/* Cart Icon with Badge */}
+                    <a 
+                      href="/checkout" 
+                      className="relative p-2 text-slate-200 hover:text-cyan-300 transition hover:bg-cyan-500/10 rounded-lg"
+                      title="View Cart"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                      {cartCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
+                          {cartCount}
+                        </span>
+                      )}
+                    </a>
+
+                    {/* Dashboard Link */}
+                    <a 
+                      href="/user_dashboard" 
+                      className="flex items-center space-x-2 px-3 py-2 text-slate-200 hover:text-cyan-300 transition hover:bg-cyan-500/10 rounded-lg"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      <span className="text-sm font-medium">Dashboard</span>
+                    </a>
+                    {/* Logout Button */}
                 <button
                   onClick={handleLogout}
                   className="px-4 py-2 text-sm font-medium text-red-300 hover:text-red-200 transition"
@@ -582,10 +635,13 @@ export default function Header() {
                 Get Started
               </a>
             )}
+              </>
+            )}
           </nav>
 
           {/* Mobile menu button */}
           <button 
+          suppressHydrationWarning
             className="lg:hidden p-2 rounded-md hover:bg-blue-800/50 transition"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label="Toggle menu"
@@ -618,6 +674,7 @@ export default function Header() {
             {Object.keys(services).map((category) => (
               <div key={category}>
                 <button
+                suppressHydrationWarning
                   className="w-full flex items-center justify-between px-3 py-2 rounded-md text-slate-200 hover:bg-cyan-500/20 transition font-medium"
                   onClick={() => setActiveMobileMenu(activeMobileMenu === category ? null : category)}
                 >
@@ -647,16 +704,41 @@ export default function Header() {
                 )}
               </div>
             ))}
-
+ {mounted && (
             <div className="pt-3 border-t border-cyan-500/30">
               {isLoggedIn ? (
                 <div className="space-y-2">
-                  <div className="px-3 py-2 text-slate-200 font-medium flex items-center">
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    My Account
-                  </div>
+                   {/* Cart Link Mobile */}
+                    <a 
+                      href="/checkout" 
+                      className="flex items-center justify-between px-3 py-2 rounded-md text-slate-200 hover:bg-cyan-500/20 font-medium"
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      <span className="flex items-center">
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        My Cart
+                      </span>
+                      {cartCount > 0 && (
+                        <span className="bg-red-500 text-white text-xs font-bold rounded-full px-2 py-1">
+                          {cartCount}
+                        </span>
+                      )}
+                    </a>
+
+                    {/* Dashboard Link Mobile */}
+                    <a 
+                      href="/user_dashboard" 
+                      className="flex items-center px-3 py-2 rounded-md text-slate-200 hover:bg-cyan-500/20 font-medium"
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      My Dashboard
+                    </a>
+
                   <button
                     onClick={() => {
                       handleLogout();
@@ -677,6 +759,7 @@ export default function Header() {
                 </a>
               )}
             </div>
+ )}
           </div>
         </div>
       )}

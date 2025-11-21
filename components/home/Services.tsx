@@ -1,10 +1,9 @@
 'use client';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-// import SectionHeading from '../ui/SectionHeading';
-// import Card from '../ui/card';
 import { servicesData } from '../../data/services';
- 
-function SectionHeading({ children }) {
+
+function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
     <div className="text-center mb-12">
       <h2 className="text-4xl font-bold text-white mb-4">
@@ -15,7 +14,13 @@ function SectionHeading({ children }) {
   );
 }
 
-function Card({ children, onClick = undefined, className = "" }) {
+interface CardProps {
+  children: React.ReactNode;
+  onClick?: () => void;
+  className?: string;
+}
+
+function Card({ children, onClick, className = "" }: CardProps) {
   return (
     <div 
       onClick={onClick}
@@ -27,6 +32,8 @@ function Card({ children, onClick = undefined, className = "" }) {
 
 export default function Services() {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   
   // Convert servicesData object to array of categories
   const categories = Object.entries(servicesData).map(([key, category]) => ({
@@ -37,29 +44,54 @@ export default function Services() {
     icon: category.icon
   }));
   
- 
+  useEffect(() => {
+    setMounted(true);
+    if (typeof window !== 'undefined') {
+      const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
+      setIsLoggedIn(loggedIn);
+    }
+  }, []);
+  
   const handleCategoryClick = (categorySlug: string) => {
     router.push(`/services/category/${categorySlug}`);
   };
 
+  // Handle "Get Started" - check auth and redirect appropriately
+  const handleGetStarted = () => {
+    if (isLoggedIn) {
+      // Check if there are items in cart
+      const cartItems = typeof window !== 'undefined' 
+        ? localStorage.getItem('cartItems') 
+        : null;
+      
+      if (cartItems && JSON.parse(cartItems).length > 0) {
+        router.push('/checkout');
+      } else {
+        router.push('/dashboard');
+      }
+    } else {
+      router.push('/login');
+    }
+  };
+
   return (
-     <section id="services" className="relative py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 overflow-hidden">
-     {/* Enhanced Animated Background */}
-       <div className="absolute inset-0 overflow-hidden">
-         {/* Layered gradient waves */}
-         <div className="absolute inset-0 opacity-20">
+    <section id="services" className="relative py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 overflow-hidden">
+      {/* Enhanced Animated Background */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* Layered gradient waves */}
+        <div className="absolute inset-0 opacity-20">
           <div className="absolute inset-0 bg-gradient-to-br from-cyan-600 via-blue-700 to-purple-800 animate-gradient-shift"></div>
-         </div>
+        </div>
         
-         {/* Abstract geometric shapes */}
+        {/* Abstract geometric shapes */}
         <div className="absolute top-0 left-0 w-full h-full opacity-10">
-           <div className="absolute top-20 left-10 w-64 h-64 bg-cyan-500 rounded-full mix-blend-screen filter blur-3xl animate-blob"></div>
-           <div className="absolute top-40 right-20 w-80 h-80 bg-blue-600 rounded-full mix-blend-screen filter blur-3xl animate-blob animation-delay-2000"></div>
-           <div className="absolute bottom-20 left-1/3 w-72 h-72 bg-purple-600 rounded-full mix-blend-screen filter blur-3xl animate-blob animation-delay-4000"></div>
+          <div className="absolute top-20 left-10 w-64 h-64 bg-cyan-500 rounded-full mix-blend-screen filter blur-3xl animate-blob"></div>
+          <div className="absolute top-40 right-20 w-80 h-80 bg-blue-600 rounded-full mix-blend-screen filter blur-3xl animate-blob animation-delay-2000"></div>
+          <div className="absolute bottom-20 left-1/3 w-72 h-72 bg-purple-600 rounded-full mix-blend-screen filter blur-3xl animate-blob animation-delay-4000"></div>
         </div>
 
-         {/* Hexagonal grid pattern */}
-         <div className="absolute inset-0 opacity-5" style={{
+        {/* Hexagonal grid pattern */}
+        <div className="absolute inset-0 opacity-5" style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l25.98 15v30L30 60 4.02 45V15z' fill='none' stroke='%23ffffff' stroke-width='1'/%3E%3C/svg%3E")`,
           backgroundSize: '60px 60px'
         }}></div>
@@ -123,7 +155,10 @@ export default function Services() {
                 <p className="text-sm text-slate-300 mb-4 leading-relaxed">
                   {category.description}
                 </p>
-                <button className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white py-3 rounded-lg hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-cyan-500/30 transform hover:-translate-y-0.5">
+                <button 
+                  suppressHydrationWarning
+                  className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white py-3 rounded-lg hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-cyan-500/30 transform hover:-translate-y-0.5"
+                >
                   Explore Services →
                 </button>
               </Card>
@@ -131,7 +166,7 @@ export default function Services() {
           ))}
         </div>
 
-        {/* Call to Action */}
+        {/* Call to Action - Updated with Dashboard Integration */}
         <div className="mt-16 text-center">
           <div className="bg-gradient-to-br from-slate-900/90 to-blue-900/90 backdrop-blur-md rounded-2xl p-8 border border-cyan-400/20 shadow-2xl max-w-3xl mx-auto">
             <h3 className="text-2xl font-bold text-white mb-3">
@@ -140,17 +175,92 @@ export default function Services() {
             <p className="text-slate-300 mb-6">
               Our expert team is ready to help with custom solutions tailored to your needs.
             </p>
-            <button 
-              onClick={() => router.push('/contact')}
-              className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-8 py-3 rounded-lg hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-cyan-500/30 transform hover:-translate-y-0.5"
-            >
-              Contact Our Experts
-            </button>
+            
+            {/* Buttons Container */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button 
+                suppressHydrationWarning
+                onClick={() => {
+                  const ctaSection = document.getElementById('cta-section');
+                  if (ctaSection) {
+                    ctaSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+                className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-8 py-3 rounded-lg hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-cyan-500/30 transform hover:-translate-y-0.5"
+              >
+                Contact Our Experts
+              </button>
+              
+              {/* Get Started / Dashboard Button */}
+              {mounted && (
+                <button 
+                  onClick={handleGetStarted}
+                  className="bg-gradient-to-r from-purple-500 to-pink-600 text-white px-8 py-3 rounded-lg hover:from-purple-600 hover:to-pink-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-purple-500/30 transform hover:-translate-y-0.5 flex items-center justify-center gap-2 mx-auto sm:mx-0"
+                >
+                  {isLoggedIn ? (
+                    <>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                      </svg>
+                      My Dashboard
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                      Get Started Now
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
           </div>
         </div>
+
+        {/* Quick Stats Section (shows if logged in) */}
+        {mounted && isLoggedIn && (
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            <div className="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 backdrop-blur-md rounded-xl p-6 border border-cyan-400/20 text-center">
+              <div className="text-3xl mb-2">🛒</div>
+              <h4 className="text-lg font-bold text-white mb-1">Quick Access</h4>
+              <p className="text-sm text-slate-300 mb-3">View your cart</p>
+              <button 
+                onClick={() => router.push('/dashboard')}
+                className="text-cyan-400 hover:text-cyan-300 text-sm font-medium"
+              >
+                Go to Cart →
+              </button>
+            </div>
+
+            <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 backdrop-blur-md rounded-xl p-6 border border-purple-400/20 text-center">
+              <div className="text-3xl mb-2">📦</div>
+              <h4 className="text-lg font-bold text-white mb-1">Track Orders</h4>
+              <p className="text-sm text-slate-300 mb-3">Monitor progress</p>
+              <button 
+                onClick={() => router.push('/user_dashboard')}
+                className="text-purple-400 hover:text-purple-300 text-sm font-medium"
+              >
+                View Orders →
+              </button>
+            </div>
+
+            <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 backdrop-blur-md rounded-xl p-6 border border-green-400/20 text-center">
+              <div className="text-3xl mb-2">📊</div>
+              <h4 className="text-lg font-bold text-white mb-1">Dashboard</h4>
+              <p className="text-sm text-slate-300 mb-3">Full overview</p>
+              <button 
+                onClick={() => router.push('/dashboard')}
+                className="text-green-400 hover:text-green-300 text-sm font-medium"
+              >
+                Open Dashboard →
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
- <style jsx>{`
+      <style jsx>{`
         @keyframes gradient-shift {
           0%, 100% { transform: translateX(-5%) translateY(-5%) rotate(0deg); }
           50% { transform: translateX(5%) translateY(5%) rotate(5deg); }
@@ -208,7 +318,6 @@ export default function Services() {
           background-image: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.03) 1px, transparent 1px, transparent 2px);
         }
       `}</style>
-
     </section>
   );
 }

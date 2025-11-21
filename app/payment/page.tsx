@@ -2,14 +2,35 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
+interface PendingOrder {
+  items: any[]
+  orders?: any[]
+  subtotal: number
+  gst: number
+  total: number
+  userEmail: string
+  userName: string
+  orderDate: string
+}
+
 export default function Payment() {
   const router = useRouter()
-  const [orderData, setOrderData] = useState(null)
+  const [orderData, setOrderData] = useState<PendingOrder | null>(null)
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('card')
   const [isProcessing, setIsProcessing] = useState(false)
+  const [cardDetails, setCardDetails] = useState({
+    number: '',
+    name: '',
+    expiry: '',
+    cvv: ''
+  })
+  const [upiId, setUpiId] = useState('')
   const [showSuccess, setShowSuccess] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
+    
     if (typeof window !== 'undefined') {
       const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
       if (!isLoggedIn) {
@@ -22,67 +43,77 @@ export default function Payment() {
         router.push('/checkout')
         return
       }
-      setOrderData(JSON.parse(pending))
+      try {
+        const parsedData = JSON.parse(pending)
+        setOrderData(parsedData)
+      } catch (error) {
+        console.error('Error loading order:', error)
+        router.push('/checkout')
+      }
     }
   }, [router])
 
   const handlePayment = async () => {
+    if (!orderData) return
     setIsProcessing(true)
+    try {
+      await new Promise(resolve => setTimeout(resolve, 3000))
 
-    // Here you would integrate with your payment gateway
-    // Options: Razorpay, Paytm, PhonePe, Stripe, PayU, etc.
-    
-    // Simulate payment processing
-    setTimeout(() => {
-      // Clear cart and order data
+      // Create orders from items if orders array doesn't exist
+      const ordersToProcess = orderData.orders && orderData.orders.length > 0 
+        ? orderData.orders 
+        : orderData.items.map(item => ({
+            id: `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            serviceId: item.id,
+            serviceTitle: item.title,
+            serviceName: item.title,
+            price: item.price,
+            price_display: item.price_display,
+            orderDate: orderData.orderDate,
+            status: 'Pending',
+            progress: 0
+          }))
+
+      const updatedOrders = ordersToProcess.map(order => ({
+        ...order,
+        status: 'In Progress',
+        progress: 15,
+        trackingUpdates: [
+          {
+            date: new Date().toLocaleDateString('en-GB'),
+            message: 'Payment received successfully'
+          },
+          {
+            date: new Date().toLocaleDateString('en-GB'),
+            message: 'Order placed successfully'
+          },
+          {
+            date: new Date().toLocaleDateString('en-GB'),
+            message: 'Our team is reviewing your requirements'
+          }
+        ]
+      }))
+
+      const existingActive = localStorage.getItem('activeOrders')
+      const activeOrders = existingActive ? JSON.parse(existingActive) : []
+      localStorage.setItem('activeOrders', JSON.stringify([...activeOrders, ...updatedOrders]))
+
       localStorage.removeItem('cartItems')
       localStorage.removeItem('pendingOrder')
-      
-      // Show success
-      setShowSuccess(true)
-      setIsProcessing(false)
-      
-      // Redirect to success page after 2 seconds
-      setTimeout(() => {
-        router.push('/order-success')
-      }, 2000)
-    }, 2000)
 
-    /* 
-    RAZORPAY INTEGRATION EXAMPLE:
-    
-    const options = {
-      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY,
-      amount: orderData.total * 100, // Amount in paise
-      currency: 'INR',
-      name: 'FinovaTaxPro',
-      description: 'Service Payment',
-      order_id: 'order_xyz', // Get this from your backend
-      handler: function (response) {
-        // Payment successful
-        console.log(response.razorpay_payment_id)
-        console.log(response.razorpay_order_id)
-        console.log(response.razorpay_signature)
-        
-        // Verify payment on your backend
-        // Then redirect to success page
-        router.push('/order-success')
-      },
-      prefill: {
-        name: orderData.userName,
-        email: orderData.userEmail,
-      },
-      theme: {
-        color: '#2563EB'
-      }
+      window.dispatchEvent(new Event('cartUpdated'))
+
+      router.push('/payment-success')
+    } catch (error) {
+      console.error('Payment error:', error)
+      alert('Payment failed. Please try again.')
+    } finally {
+      setIsProcessing(false)
     }
-    
-    const razorpay = new window.Razorpay(options)
-    razorpay.open()
-    */
   }
 
-  if (!orderData) {
+  // Don't render until mounted to avoid hydration issues
+  if (!mounted || !orderData) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -117,6 +148,7 @@ export default function Payment() {
         <div className="mb-8">
           <button
             onClick={() => router.push('/checkout')}
+            suppressHydrationWarning
             className="flex items-center text-blue-600 hover:text-blue-700 mb-4 font-medium transition"
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -131,7 +163,6 @@ export default function Payment() {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Payment Methods */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Payment Method Selection */}
             <div className="bg-white rounded-xl shadow-sm p-6">
               <h2 className="text-xl font-bold text-gray-900 mb-6">Select Payment Method</h2>
 
@@ -146,13 +177,14 @@ export default function Payment() {
                     value="card"
                     checked={selectedPaymentMethod === 'card'}
                     onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                    suppressHydrationWarning
                     className="w-5 h-5 text-blue-600"
                   />
                   <div className="ml-4 flex-1">
                     <div className="flex items-center justify-between">
                       <span className="font-semibold text-gray-900">Credit / Debit Card</span>
                       <div className="flex gap-2">
-                        <span className="text-xl">💳</span>
+                        <span className="text-xl" suppressHydrationWarning>💳</span>
                       </div>
                     </div>
                     <p className="text-sm text-gray-600 mt-1">Visa, Mastercard, Rupay</p>
@@ -169,12 +201,13 @@ export default function Payment() {
                     value="upi"
                     checked={selectedPaymentMethod === 'upi'}
                     onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                    suppressHydrationWarning
                     className="w-5 h-5 text-blue-600"
                   />
                   <div className="ml-4 flex-1">
                     <div className="flex items-center justify-between">
                       <span className="font-semibold text-gray-900">UPI</span>
-                      <span className="text-xl">📱</span>
+                      <span className="text-xl" suppressHydrationWarning>📱</span>
                     </div>
                     <p className="text-sm text-gray-600 mt-1">Google Pay, PhonePe, Paytm, BHIM</p>
                   </div>
@@ -190,12 +223,13 @@ export default function Payment() {
                     value="netbanking"
                     checked={selectedPaymentMethod === 'netbanking'}
                     onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                    suppressHydrationWarning
                     className="w-5 h-5 text-blue-600"
                   />
                   <div className="ml-4 flex-1">
                     <div className="flex items-center justify-between">
                       <span className="font-semibold text-gray-900">Net Banking</span>
-                      <span className="text-xl">🏦</span>
+                      <span className="text-xl" suppressHydrationWarning>🏦</span>
                     </div>
                     <p className="text-sm text-gray-600 mt-1">All major banks supported</p>
                   </div>
@@ -211,12 +245,13 @@ export default function Payment() {
                     value="wallet"
                     checked={selectedPaymentMethod === 'wallet'}
                     onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                    suppressHydrationWarning
                     className="w-5 h-5 text-blue-600"
                   />
                   <div className="ml-4 flex-1">
                     <div className="flex items-center justify-between">
                       <span className="font-semibold text-gray-900">Wallets</span>
-                      <span className="text-xl">💰</span>
+                      <span className="text-xl" suppressHydrationWarning>💰</span>
                     </div>
                     <p className="text-sm text-gray-600 mt-1">Paytm, PhonePe, Amazon Pay</p>
                   </div>
@@ -234,8 +269,8 @@ export default function Payment() {
                   <h3 className="font-bold text-gray-900 mb-2">100% Secure Payment</h3>
                   <p className="text-sm text-gray-600">Your payment information is encrypted with bank-level security. We never store your card details.</p>
                   <div className="flex gap-2 mt-3">
-                    <span className="px-3 py-1 bg-white rounded-full text-xs font-medium">🔒 SSL Encrypted</span>
-                    <span className="px-3 py-1 bg-white rounded-full text-xs font-medium">✓ PCI Compliant</span>
+                    <span className="px-3 py-1 bg-white rounded-full text-xs font-medium" suppressHydrationWarning>🔒 SSL Encrypted</span>
+                    <span className="px-3 py-1 bg-white rounded-full text-xs font-medium" suppressHydrationWarning>✓ PCI Compliant</span>
                   </div>
                 </div>
               </div>
@@ -247,7 +282,6 @@ export default function Payment() {
             <div className="bg-white rounded-xl shadow-lg p-6 sticky top-24">
               <h2 className="text-lg font-bold text-gray-900 mb-4">Order Summary</h2>
 
-              {/* Order Items */}
               <div className="space-y-3 mb-4 pb-4 border-b">
                 {orderData.items.map((item, index) => (
                   <div key={index} className="flex justify-between text-sm">
@@ -257,11 +291,10 @@ export default function Payment() {
                 ))}
               </div>
 
-              {/* Pricing */}
               <div className="space-y-2 mb-4 pb-4 border-b">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Subtotal</span>
-                  <span className="text-gray-900">₹{orderData.total.toLocaleString()}</span>
+                  <span className="text-gray-900" suppressHydrationWarning>₹{orderData.total.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Processing Fee</span>
@@ -269,16 +302,15 @@ export default function Payment() {
                 </div>
               </div>
 
-              {/* Total */}
               <div className="flex justify-between text-lg font-bold mb-6">
                 <span>Total Amount</span>
-                <span className="text-blue-600">₹{orderData.total.toLocaleString()}</span>
+                <span className="text-blue-600" suppressHydrationWarning>₹{orderData.total.toLocaleString()}</span>
               </div>
 
-              {/* Pay Button */}
               <button
                 onClick={handlePayment}
                 disabled={isProcessing}
+                suppressHydrationWarning
                 className="w-full bg-blue-600 text-white py-4 rounded-lg hover:bg-blue-700 transition font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:bg-blue-300 disabled:cursor-not-allowed disabled:transform-none"
               >
                 {isProcessing ? (
@@ -290,11 +322,10 @@ export default function Payment() {
                     Processing...
                   </span>
                 ) : (
-                  `Pay ₹${orderData.total.toLocaleString()}`
+                  <span suppressHydrationWarning>Pay ₹{orderData.total.toLocaleString()}</span>
                 )}
               </button>
 
-              {/* Money Back Guarantee */}
               <div className="mt-6 text-center">
                 <div className="inline-flex items-center text-sm text-gray-600">
                   <svg className="w-4 h-4 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">

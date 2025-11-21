@@ -1,23 +1,30 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 export default function Checkout() {
-  const router = useRouter()
   const [cartItems, setCartItems] = useState([])
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userName, setUserName] = useState('')
   const [userEmail, setUserEmail] = useState('')
+  const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
-    // Check login status
+    setIsClient(true)
+  }, [])
+
+  useEffect(() => {
+    // Check login status only on client side
+    if (!isClient) return
+
     if (typeof window !== 'undefined') {
       const loggedIn = localStorage.getItem('isLoggedIn') === 'true'
       setIsLoggedIn(loggedIn)
       
       if (!loggedIn) {
-        router.push('/login')
+        // Store the current page as redirect destination
+        localStorage.setItem('redirectAfterLogin', '/checkout')
+        window.location.href = '/login'
         return
       }
       
@@ -41,16 +48,24 @@ export default function Checkout() {
         }
         localStorage.removeItem('pendingService')
         localStorage.setItem('cartItems', JSON.stringify(items))
+        // Dispatch event to update header cart count
+        window.dispatchEvent(new Event('storage'))
+        window.dispatchEvent(new Event('cartUpdated'))
       }
       
       setCartItems(items)
     }
-  }, [router])
+  }, [isClient])
 
   const removeItem = (slug) => {
     const updated = cartItems.filter(item => item.slug !== slug)
     setCartItems(updated)
-    localStorage.setItem('cartItems', JSON.stringify(updated))
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('cartItems', JSON.stringify(updated))
+      // Dispatch events to update header cart count
+      window.dispatchEvent(new Event('storage'))
+      window.dispatchEvent(new Event('cartUpdated'))
+    }
   }
 
   const calculateTotal = () => {
@@ -68,8 +83,20 @@ export default function Checkout() {
     }
     localStorage.setItem('pendingOrder', JSON.stringify(orderData))
     
-    // Redirect to payment page
-    router.push('/payment')
+    // Redirect to payment page using window.location for proper navigation
+    window.location.href = '/payment'
+  }
+
+  // Show loading state until client-side rendering
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-gray-50 pt-24 pb-16 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
   }
 
   if (cartItems.length === 0) {
