@@ -82,23 +82,23 @@ export default function Header() {
           </a>
 
           {/* Desktop Navigation */}
-          <nav className="hidden 2xl:flex items-center space-x-6 xl:space-x-8">
-            <a href="/" className="px-3 py-2 text-slate-200 hover:text-cyan-300 transition text-sm font-medium">
-              Home
-            </a>
-
+          <nav className="hidden 2xl:flex items-center space-x-1 xl:space-x-2">
+            
             {serviceCategories.map((category: any) => (
               <div
                 key={category.id}
-                className="relative"
+                className="relative group"
                 onMouseEnter={() => setActiveMenu(category.name)}
                 onMouseLeave={() => setActiveMenu(null)}
               >
                 <button
                   suppressHydrationWarning
-                  className="px-3 py-2 text-slate-200 hover:text-cyan-300 transition text-sm font-medium flex items-center">
+                  className={`px-4 py-2 text-slate-200 transition-all duration-300 text-sm font-medium flex items-center whitespace-nowrap rounded-full
+                    ${activeMenu === category.name ? 'bg-cyan-500/20 text-cyan-300 shadow-lg shadow-cyan-500/20' : 'hover:bg-white/5 hover:text-cyan-200'}
+                  `}
+                >
                   {category.name}
-                  <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className={`w-4 h-4 ml-1 transition-transform duration-300 ${activeMenu === category.name ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
