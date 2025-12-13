@@ -82,7 +82,7 @@ export default function Header() {
           </a>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-6 xl:space-x-8">
+          <nav className="hidden xl:flex items-center space-x-6 xl:space-x-8">
             <a href="/" className="px-3 py-2 text-slate-200 hover:text-cyan-300 transition text-sm font-medium">
               Home
             </a>
@@ -175,7 +175,7 @@ export default function Header() {
           {/* Mobile menu button */}
           <button
             suppressHydrationWarning
-            className="lg:hidden p-2 rounded-md hover:bg-blue-800/50 transition"
+            className="xl:hidden p-2 rounded-md hover:bg-blue-800/50 transition"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label="Toggle menu"
           >
@@ -194,7 +194,7 @@ export default function Header() {
 
       {/* Mobile Navigation */}
       {mobileOpen && (
-        <div className="lg:hidden border-t border-cyan-500/30 bg-gradient-to-br from-slate-900/95 via-blue-900/95 to-slate-800/95 backdrop-blur-lg max-h-[80vh] overflow-y-auto">
+        <div className="xl:hidden border-t border-cyan-500/30 bg-gradient-to-br from-slate-900/95 via-blue-900/95 to-slate-800/95 backdrop-blur-lg max-h-[80vh] overflow-y-auto">
           <div className="px-4 py-4 space-y-2">
             <a
               href="/"
