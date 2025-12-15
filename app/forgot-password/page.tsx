@@ -15,7 +15,8 @@ export default function ForgotPasswordPage() {
     setError('');
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/password/reset/`, {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') || '';
+      const res = await fetch(`${baseUrl}/api/auth/password-reset/request/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
@@ -32,13 +33,13 @@ export default function ForgotPasswordPage() {
       }
 
       if (!res.ok) {
-        throw new Error(data.message || 'Failed to send reset email');
+        throw new Error(data.message || data.detail || data.error || 'Failed to send reset email');
       }
 
       setIsEmailSent(true);
     } catch (err: any) {
-        console.error("Forgot password error", err);
-        setError(err.message || 'Something went wrong. Please try again.');
+      console.error("Forgot password error", err);
+      setError(err.message || 'Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -48,22 +49,22 @@ export default function ForgotPasswordPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full text-center">
-             <div className="bg-white rounded-xl shadow-lg p-8">
-                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
-                    <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                </div>
-                <h3 className="text-xl font-medium text-gray-900">Check your email</h3>
-                <p className="mt-2 text-gray-600">
-                    We have sent a password reset link to <strong>{email}</strong>.
-                </p>
-                <div className="mt-6">
-                    <Link href="/login" className="text-blue-600 hover:text-blue-500 font-medium">
-                        Return to sign in
-                    </Link>
-                </div>
-             </div>
+          <div className="bg-white rounded-xl shadow-lg p-8">
+            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+              <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-medium text-gray-900">Check your email</h3>
+            <p className="mt-2 text-gray-600">
+              We have sent a password reset link to <strong>{email}</strong>.
+            </p>
+            <div className="mt-6">
+              <Link href="/login" className="text-blue-600 hover:text-blue-500 font-medium">
+                Return to sign in
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     );

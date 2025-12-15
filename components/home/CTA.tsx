@@ -25,20 +25,38 @@ export default function CTA() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // In production, send to backend API
-    console.log('Form submitted:', formData);
-    
-    setLoading(false);
-    setSubmitted(true);
-    
-    setTimeout(() => {
+
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8082';
+      const response = await fetch(`${apiUrl}/api/contact/consultation/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        setSubmitted(true);
+        setFormData({ name: '', email: '', phone: '', service: '' });
+      } else {
+        console.error('Submission failed');
+        alert('Failed to send request. Please try again.');
+        setSubmitted(false);
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      alert('Something went wrong. Please check your connection.');
       setSubmitted(false);
-      setFormData({ name: '', email: '', phone: '', service: '' });
-    }, 4000);
+    } finally {
+      setLoading(false);
+    }
+
+    if (submitted) {
+      setTimeout(() => {
+        setSubmitted(false);
+      }, 4000);
+    }
   };
 
   return (
@@ -62,7 +80,7 @@ export default function CTA() {
             <p className="text-xl text-blue-100 mb-8 leading-relaxed">
               Join 10,000+ businesses that trust FinovaTaxPro for their tax and compliance needs. Get expert assistance and stay worry-free.
             </p>
-            
+
             <div className="space-y-4 mb-8">
               <div className="flex items-start">
                 <div className="flex-shrink-0 w-8 h-8 bg-green-400 rounded-full flex items-center justify-center mr-3">

@@ -23,6 +23,7 @@ interface ServiceCategory {
   id: number;
   name: string;
   description: string;
+  detail_description?: string;
   services: Service[];
 }
 
@@ -121,7 +122,12 @@ export default function CategoryPage() {
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
                 {category.name}
               </h1>
-              <p className="text-lg text-gray-600">{category.description}</p>
+              <p className="text-base text-gray-500 font-normal mb-4">{category.description}</p>
+              {category.detail_description && (
+                <p className="text-xl text-gray-800 whitespace-pre-wrap leading-relaxed">
+                  {category.detail_description}
+                </p>
+              )}
             </div>
           </div>
 

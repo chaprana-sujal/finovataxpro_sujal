@@ -272,15 +272,15 @@
 //             <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-cyan-500 to-blue-700 animate-gradient-flow"></div>
 //           </div>
 //         </div>
-        
+
 //         {/* Grid pattern overlay */}
 //         <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
-        
+
 //         {/* Glowing orbs */}
 //         <div className="absolute -top-40 -right-40 w-96 h-96 bg-cyan-500 rounded-full mix-blend-soft-light filter blur-3xl opacity-30 animate-pulse-slow"></div>
 //         <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-600 rounded-full mix-blend-soft-light filter blur-3xl opacity-30 animate-pulse-slow animation-delay-2000"></div>
 //         <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-cyan-600 rounded-full mix-blend-soft-light filter blur-3xl opacity-20 animate-pulse-slow animation-delay-4000"></div>
-        
+
 //         {/* Floating light particles */}
 //         <div className="absolute top-20 left-1/4 w-2 h-2 bg-cyan-400 rounded-full animate-float-1 shadow-lg shadow-cyan-400/50"></div>
 //         <div className="absolute top-40 right-1/4 w-1.5 h-1.5 bg-blue-400 rounded-full animate-float-2 shadow-lg shadow-blue-400/50"></div>
@@ -288,7 +288,7 @@
 //         <div className="absolute top-1/3 right-1/3 w-1.5 h-1.5 bg-blue-300 rounded-full animate-float-4 shadow-lg shadow-blue-300/50"></div>
 //         <div className="absolute bottom-1/4 left-2/3 w-2 h-2 bg-cyan-500 rounded-full animate-float-5 shadow-lg shadow-cyan-500/50"></div>
 //         <div className="absolute top-2/3 right-1/2 w-1 h-1 bg-blue-400 rounded-full animate-float-6 shadow-lg shadow-blue-400/50"></div>
-        
+
 //         {/* Subtle scan lines effect */}
 //         <div className="absolute inset-0 bg-scanlines opacity-5"></div>
 //       </div>
@@ -581,10 +581,43 @@ import React, { useState } from 'react';
 // Hero Component with Hydration Fix
 export default function Hero() {
   const [email, setEmail] = useState('');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [message, setMessage] = useState('');
 
-  const handleGetStarted = () => {
-    if (email) {
-      alert(`Email saved: ${email}\nRedirecting to /register`);
+  const handleGetStarted = async () => {
+    if (!email) return;
+
+    setStatus('loading');
+    setMessage('');
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/contact/consultation/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (response.ok) {
+        setStatus('success');
+        setMessage('Request sent! We\'ll contact you shortly.');
+        setEmail('');
+        // Optional: Redirect after delay or keep on page
+        setTimeout(() => {
+          if (typeof window !== 'undefined') {
+            window.location.href = '/register';
+          }
+        }, 2000);
+      } else {
+        setStatus('error');
+        setMessage('Failed to send request. Please try again.');
+      }
+    } catch (error) {
+      setStatus('error');
+      setMessage('Something went wrong. Only network error.');
+    } finally {
+      setStatus('idle');
     }
   };
 
@@ -596,7 +629,7 @@ export default function Hero() {
         <div className="absolute inset-0 opacity-20">
           <div className="absolute inset-0 bg-gradient-to-br from-cyan-600 via-blue-700 to-purple-800 animate-gradient-shift"></div>
         </div>
-        
+
         {/* Abstract geometric shapes */}
         <div className="absolute top-0 left-0 w-full h-full opacity-10">
           <div className="absolute top-20 left-10 w-64 h-64 bg-cyan-500 rounded-full mix-blend-screen filter blur-3xl animate-blob"></div>
@@ -616,17 +649,17 @@ export default function Hero() {
         <div className="absolute bottom-1/3 left-1/3 w-3 h-3 bg-purple-400 rounded-full animate-particle-3 shadow-glow-purple"></div>
         <div className="absolute top-2/3 right-1/3 w-2 h-2 bg-cyan-300 rounded-full animate-particle-4 shadow-glow-cyan"></div>
         <div className="absolute bottom-1/4 left-2/3 w-2.5 h-2.5 bg-blue-300 rounded-full animate-particle-5 shadow-glow-blue"></div>
-        
+
         {/* Animated lines */}
         <svg className="absolute inset-0 w-full h-full opacity-10" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.5"/>
-              <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.5"/>
+              <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.5" />
+              <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.5" />
             </linearGradient>
           </defs>
-          <line x1="0" y1="0" x2="100%" y2="100%" stroke="url(#lineGradient)" strokeWidth="2" className="animate-draw-line"/>
-          <line x1="100%" y1="0" x2="0" y2="100%" stroke="url(#lineGradient)" strokeWidth="2" className="animate-draw-line animation-delay-2000"/>
+          <line x1="0" y1="0" x2="100%" y2="100%" stroke="url(#lineGradient)" strokeWidth="2" className="animate-draw-line" />
+          <line x1="100%" y1="0" x2="0" y2="100%" stroke="url(#lineGradient)" strokeWidth="2" className="animate-draw-line animation-delay-2000" />
         </svg>
 
         {/* Overlapping circles animation */}
@@ -654,7 +687,7 @@ export default function Hero() {
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
-              Complete Your 
+              Complete Your
               <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-300 bg-clip-text text-transparent"> Tax Filing</span> with Confidence
             </h1>
 
@@ -664,10 +697,12 @@ export default function Hero() {
 
             <div className="flex flex-col sm:flex-row gap-4 mb-8 justify-center lg:justify-start">
               <button
-                onClick={() =>{ const servicesSection = document.getElementById('services');
+                onClick={() => {
+                  const servicesSection = document.getElementById('services');
                   if (servicesSection) {
                     servicesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  }}}
+                  }
+                }}
                 data-form-type="other"
                 suppressHydrationWarning
                 className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-8 py-4 rounded-lg hover:from-cyan-600 hover:to-blue-700 transition text-lg font-semibold shadow-lg hover:shadow-cyan-500/30 transform hover:-translate-y-0.5"
@@ -711,7 +746,13 @@ export default function Hero() {
                 </button>
               </div>
               <p className="text-xs text-slate-400 mt-2 text-center sm:text-left">
-                Free consultation • No credit card required
+                {message ? (
+                  <span className={status === 'error' ? 'text-red-400' : 'text-green-400'}>
+                    {message}
+                  </span>
+                ) : (
+                  'Free consultation • No credit card required'
+                )}
               </p>
             </div>
 

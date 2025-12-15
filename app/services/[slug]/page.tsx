@@ -16,6 +16,7 @@ interface Service {
   id: number;
   name: string;
   description: string;
+  detail_description?: string;
   is_active: boolean;
   category: number;
   plans: ServicePlan[];
@@ -176,7 +177,12 @@ export default function ServiceDetailPage() {
 
               {/* Full Description */}
               <div className="prose max-w-none mb-8">
-                <p className="text-gray-700 leading-relaxed text-lg">{service.description}</p>
+                <p className="text-xl text-gray-500 font-normal mb-6 border-b pb-6">{service.description}</p>
+                {service.detail_description && (
+                  <div className="text-lg text-gray-800 leading-relaxed whitespace-pre-wrap">
+                    {service.detail_description}
+                  </div>
+                )}
               </div>
 
               {/* What's Included */}
