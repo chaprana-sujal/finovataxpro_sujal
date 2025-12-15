@@ -93,8 +93,8 @@ export default function Header() {
               >
                 <button
                   suppressHydrationWarning
-                  className={`px-4 py-2 text-slate-200 transition-all duration-300 text-sm font-medium flex items-center whitespace-nowrap rounded-full
-                    ${activeMenu === category.name ? 'bg-cyan-500/20 text-cyan-300 shadow-lg shadow-cyan-500/20' : 'hover:bg-white/5 hover:text-cyan-200'}
+                  className={`px-4 py-2 text-slate-200 transition-all duration-300 text-sm font-medium flex items-center whitespace-nowrap rounded-lg transform hover:scale-105
+                    ${activeMenu === category.name ? 'bg-cyan-500/20 text-cyan-300 shadow-lg shadow-cyan-500/20 scale-105' : 'hover:bg-cyan-500/10 hover:text-cyan-200 hover:shadow-lg hover:shadow-cyan-500/30'}
                   `}
                 >
                   {category.name}
@@ -165,7 +165,7 @@ export default function Header() {
                     href="/login"
                     className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-6 py-2.5 rounded-md hover:from-cyan-600 hover:to-blue-700 transition font-medium text-sm shadow-lg hover:shadow-cyan-500/50 transform hover:-translate-y-0.5"
                   >
-                    Get Started
+                    Login
                   </a>
                 )}
               </>
@@ -284,11 +284,11 @@ export default function Header() {
                   </div>
                 ) : (
                   <a
-                    href="/register"
+                    href="/login"
                     className="block w-full text-center bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-5 py-2.5 rounded-md hover:from-cyan-600 hover:to-blue-700 transition font-medium shadow-lg"
                     onClick={() => setMobileOpen(false)}
                   >
-                    Get Started
+                    Login
                   </a>
                 )}
               </div>
