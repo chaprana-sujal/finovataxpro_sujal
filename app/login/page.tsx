@@ -75,7 +75,7 @@ export default function LoginPage() {
       });
 
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.message || 'Invalid email or password');
       }
@@ -85,23 +85,23 @@ export default function LoginPage() {
       const refreshToken = data.tokens?.refresh || data.refresh;
 
       if (accessToken) {
-        localStorage.setItem('authToken', accessToken);
+        localStorage.setItem('accessToken', accessToken);
         if (refreshToken) {
-            localStorage.setItem('refreshToken', refreshToken);
+          localStorage.setItem('refreshToken', refreshToken);
         }
       } else {
         console.error('Missing tokens in response:', data);
         setIsLoading(false);
         setErrors({ api: 'Login successful but no token received from server.' });
-        return; 
+        return;
       }
-      
+
       localStorage.setItem('isLoggedIn', 'true');
       if (data.user) {
         localStorage.setItem('userEmail', data.user.email);
         localStorage.setItem('userName', data.user.first_name || data.user.email.split('@')[0]);
       } else if (data.email) {
-         localStorage.setItem('userEmail', data.email);
+        localStorage.setItem('userEmail', data.email);
       }
 
       window.dispatchEvent(new Event('storage'));
@@ -140,14 +140,14 @@ export default function LoginPage() {
           throw new Error(data.message || 'Google login failed');
         }
 
-       // RESILIENT TOKEN PARSING for Google too
-      const accessToken = data.tokens?.access || data.access || data.token || data.key;
-      const refreshToken = data.tokens?.refresh || data.refresh;
+        // RESILIENT TOKEN PARSING for Google too
+        const accessToken = data.tokens?.access || data.access || data.token || data.key;
+        const refreshToken = data.tokens?.refresh || data.refresh;
 
-      if (accessToken) {
-        localStorage.setItem('authToken', accessToken);
-        if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
-      }
+        if (accessToken) {
+          localStorage.setItem('accessToken', accessToken);
+          if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
+        }
 
         localStorage.setItem('isLoggedIn', 'true');
         if (data.user) {
