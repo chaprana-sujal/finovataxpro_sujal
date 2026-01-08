@@ -25,6 +25,8 @@ interface Service {
   deliverables: string;
   timeline: string;
   icon: string;
+  price?: number | string; // Helper for services without plans
+  slug?: string;
 }
 
 export default function ServiceDetailPage() {
@@ -67,17 +69,30 @@ export default function ServiceDetailPage() {
   }, [params]);
 
   const handleRegisterNow = (plan?: ServicePlan) => {
-    if (!service || !plan) return;
+    if (!service) return;
+
+    // Fallback values if no plan is provided (for flat structure services)
+    const targetPrice = plan ? plan.price : (service.price?.toString() || '0');
+    // Sanitize price string to number
+    const numericPrice = typeof targetPrice === 'number' 
+      ? targetPrice 
+      : parseFloat(targetPrice.replace(/[^0-9.]/g, '') || '0');
+    
+    const targetName = plan ? `${service.name} - ${plan.name}` : service.name;
+    // Use service.slug if available, otherwise construct from id
+    const targetSlug = plan 
+      ? `service-${service.id}-plan-${plan.id}` 
+      : (service.slug || `service-${service.id}`);
 
     const cartItem = {
-      slug: `service-${service.id}-plan-${plan.id}`,
+      slug: targetSlug,
       icon: service.icon || '📋',
-      title: `${service.name} - ${plan.name}`,
+      title: targetName,
       category: 'Professional Service',
       short: service.description ? service.description.substring(0, 100) + '...' : '',
       timeline: service.timeline || 'TBD',
-      price: parseFloat(plan.price.replace(/[^0-9.]/g, '')),
-      price_display: `₹${plan.price}`
+      price: numericPrice,
+      price_display: `₹${numericPrice}`
     };
 
     if (!isLoggedIn) {

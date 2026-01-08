@@ -6,7 +6,7 @@ import useSWR from 'swr'
 // Fetcher function for useSWR
 const fetcher = async (url: string) => {
   if (typeof window === 'undefined') return null; // Guard for server-side
-  const token = localStorage.getItem('authToken');
+  const token = localStorage.getItem('accessToken');
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
   };
@@ -152,7 +152,7 @@ export default function Dashboard() {
       localStorage.removeItem('isLoggedIn')
       localStorage.removeItem('userName')
       localStorage.removeItem('userEmail')
-      localStorage.removeItem('authToken')
+      localStorage.removeItem('accessToken')
     }
     window.location.href = '/'
   }
