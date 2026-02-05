@@ -3,42 +3,17 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-
-interface ServicePlan {
-  id: number;
-  name: string;
-  price: string;
-  features: string;
-  is_recommended: boolean;
-}
-
-interface Service {
-  id: number;
-  name: string;
-  description: string;
-  detail_description?: string;
-  is_active: boolean;
-  category: number;
-  plans: ServicePlan[];
-  features: string;
-  requirements: string;
-  deliverables: string;
-  timeline: string;
-  icon: string;
-  price?: number | string; // Helper for services without plans
-  slug?: string;
-}
+import { categories, Service, ServicePlan } from '../../../data/serviceData';
 
 export default function ServiceDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [service, setService] = useState<Service | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchService = async () => {
+    const fetchService = () => {
       const serviceId = params?.slug as string;
       if (!serviceId) {
         setError('No service ID provided');
@@ -46,78 +21,25 @@ export default function ServiceDetailPage() {
         return;
       }
 
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/services/${serviceId}/`);
-        if (!response.ok) {
-          throw new Error('Service not found');
-        }
-        const data = await response.json();
-        setService(data);
-      } catch (err) {
-        setError('Service not found');
-      } finally {
-        setLoading(false);
+      // Find service in static data
+      // Checking both direct ID match and slug if we had it, but here strict ID based on previous structure
+      let foundService: Service | undefined;
+
+      for (const category of categories) {
+        foundService = category.services.find(s => s.id.toString() === serviceId);
+        if (foundService) break;
       }
+
+      if (foundService) {
+        setService(foundService);
+      } else {
+        setError('Service not found');
+      }
+      setLoading(false);
     };
 
     fetchService();
-
-    // Check login status from localStorage
-    if (typeof window !== 'undefined') {
-      setIsLoggedIn(localStorage.getItem('isLoggedIn') === 'true');
-    }
   }, [params]);
-
-  const handleRegisterNow = (plan?: ServicePlan) => {
-    if (!service) return;
-
-    // Fallback values if no plan is provided (for flat structure services)
-    const targetPrice = plan ? plan.price : (service.price?.toString() || '0');
-    // Sanitize price string to number
-    const numericPrice = typeof targetPrice === 'number' 
-      ? targetPrice 
-      : parseFloat(targetPrice.replace(/[^0-9.]/g, '') || '0');
-    
-    const targetName = plan ? `${service.name} - ${plan.name}` : service.name;
-    // Use service.slug if available, otherwise construct from id
-    const targetSlug = plan 
-      ? `service-${service.id}-plan-${plan.id}` 
-      : (service.slug || `service-${service.id}`);
-
-    const cartItem = {
-      slug: targetSlug,
-      icon: service.icon || '📋',
-      title: targetName,
-      category: 'Professional Service',
-      short: service.description ? service.description.substring(0, 100) + '...' : '',
-      timeline: service.timeline || 'TBD',
-      price: numericPrice,
-      price_display: `₹${numericPrice}`
-    };
-
-    if (!isLoggedIn) {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('pendingService', JSON.stringify(cartItem));
-        localStorage.setItem('returnUrl', window.location.pathname);
-      }
-      router.push('/register');
-    } else {
-      if (typeof window !== 'undefined') {
-        const existingCart = localStorage.getItem('cartItems');
-        const cart = existingCart ? JSON.parse(existingCart) : [];
-
-        const isInCart = cart.some((item: any) => item.slug === cartItem.slug);
-        if (!isInCart) {
-          cart.push(cartItem);
-          localStorage.setItem('cartItems', JSON.stringify(cart));
-          // Dispatch events to update header
-          window.dispatchEvent(new Event('storage'));
-          window.dispatchEvent(new Event('cartUpdated'));
-        }
-      }
-      router.push('/checkout');
-    }
-  };
 
   const handleContactExpert = () => {
     router.push('/contact');
@@ -301,10 +223,10 @@ export default function ServiceDetailPage() {
                           ))}
                         </ul>
                         <button
-                          onClick={() => handleRegisterNow(plan)}
+                          onClick={handleContactExpert}
                           className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition font-semibold"
                         >
-                          {isLoggedIn ? 'Add to Cart' : 'Get Started'}
+                          Contact to Proceed
                         </button>
                       </div>
                     ))}
@@ -413,17 +335,17 @@ export default function ServiceDetailPage() {
               {/* CTA Buttons */}
               <div className="space-y-3 mb-6">
                 <button
-                  onClick={() => handleRegisterNow(service.plans?.[0])}
+                  onClick={handleContactExpert}
                   className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                 >
-                  {isLoggedIn ? '🛒 Proceed to Checkout' : '🚀 Get Started Now'}
+                  🚀 Contact Expert Now
                 </button>
 
                 <button
-                  onClick={handleContactExpert}
+                  onClick={() => router.push('/#services')}
                   className="w-full border-2 border-blue-600 text-blue-600 py-3 px-4 rounded-lg hover:bg-blue-50 transition font-semibold"
                 >
-                  💬 Talk to Expert
+                  View Other Services
                 </button>
               </div>
 

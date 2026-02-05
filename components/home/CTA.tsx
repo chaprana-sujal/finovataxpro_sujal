@@ -26,37 +26,17 @@ export default function CTA() {
     e.preventDefault();
     setLoading(true);
 
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8082';
-      const response = await fetch(`${apiUrl}/api/contact/consultation/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        setSubmitted(true);
-        setFormData({ name: '', email: '', phone: '', service: '' });
-      } else {
-        console.error('Submission failed');
-        alert('Failed to send request. Please try again.');
-        setSubmitted(false);
-      }
-    } catch (error) {
-      console.error('Error submitting form:', error);
-      alert('Something went wrong. Please check your connection.');
-      setSubmitted(false);
-    } finally {
+    // Simulate network delay
+    setTimeout(() => {
+      setSubmitted(true);
       setLoading(false);
-    }
+      setFormData({ name: '', email: '', phone: '', service: '' });
+    }, 1500);
 
-    if (submitted) {
-      setTimeout(() => {
-        setSubmitted(false);
-      }, 4000);
-    }
+    // Auto hide success message
+    setTimeout(() => {
+      setSubmitted(false);
+    }, 5500);
   };
 
   return (

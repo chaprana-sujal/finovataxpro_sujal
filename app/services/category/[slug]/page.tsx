@@ -1,33 +1,11 @@
+// app/services/category/[slug]/page.tsx
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Card from '../../../../components/ui/card';
+import { categories, ServiceCategory, Service } from '../../../../data/serviceData';
 
-interface ServicePlan {
-  id: number;
-  name: string;
-  price: string;
-  features: string;
-  is_recommended: boolean;
-}
-
-interface Service {
-  id: number;
-  name: string;
-  description: string;
-  icon: string;
-  plans: ServicePlan[];
-}
-
-interface ServiceCategory {
-  id: number;
-  name: string;
-  description: string;
-  detail_description?: string;
-  services: Service[];
-}
-
-// Map category names to icons (temporary solution until backend supports icons)
+// Map category names to icons (temporary solution if not in data, though data usually has it now)
 const getCategoryIcon = (name: string) => {
   const lowerName = name.toLowerCase();
   if (lowerName.includes('registration')) return '🏢';
@@ -42,33 +20,29 @@ const getCategoryIcon = (name: string) => {
 export default function CategoryPage() {
   const router = useRouter();
   const params = useParams();
-  const categoryId = params.slug as string; // Treating slug as ID
-
   const [category, setCategory] = useState<ServiceCategory | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchCategory = async () => {
+    const fetchCategory = () => {
+      const categoryId = params?.slug as string; // Treating slug as ID
       if (!categoryId) return;
 
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/service-categories/${categoryId}/`);
-        if (!response.ok) {
-          throw new Error('Category not found');
-        }
-        const data = await response.json();
-        setCategory(data);
-      } catch (err) {
-        console.error('Error fetching category:', err);
+      // Find category in static data
+      const foundCategory = categories.find(c => c.id.toString() === categoryId);
+
+      if (foundCategory) {
+        setCategory(foundCategory);
+      } else {
+        console.error('Category not found');
         setError('Category not found');
-      } finally {
-        setLoading(false);
       }
+      setLoading(false);
     };
 
     fetchCategory();
-  }, [categoryId]);
+  }, [params]);
 
   if (loading) {
     return (
@@ -116,18 +90,14 @@ export default function CategoryPage() {
           {/* Category Header */}
           <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6">
             <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl flex items-center justify-center text-4xl shadow-lg">
-              {getCategoryIcon(category.name)}
+              {category.icon || getCategoryIcon(category.name)}
             </div>
             <div className="flex-1">
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
                 {category.name}
               </h1>
               <p className="text-base text-gray-500 font-normal mb-4">{category.description}</p>
-              {category.detail_description && (
-                <p className="text-xl text-gray-800 whitespace-pre-wrap leading-relaxed">
-                  {category.detail_description}
-                </p>
-              )}
+
             </div>
           </div>
 
@@ -143,8 +113,8 @@ export default function CategoryPage() {
           {category.services.map((service) => {
             // Calculate starting price
             const minPrice = service.plans && service.plans.length > 0
-              ? Math.min(...service.plans.map(p => parseFloat(p.price)))
-              : 0;
+              ? Math.min(...service.plans.map(p => parseFloat(p.price as string)))
+              : (service.price || 0);
 
             return (
               <div

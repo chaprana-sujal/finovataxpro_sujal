@@ -1,58 +1,11 @@
-'use client';
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import useSWR from 'swr';
-
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+"use client";
+import { useState } from 'react';
+import { categories } from '../../data/serviceData';
 
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [activeMobileMenu, setActiveMobileMenu] = useState<string | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const [cartCount, setCartCount] = useState(0);
-
-  const { data: categories, error } = useSWR(`${process.env.NEXT_PUBLIC_API_URL}/api/service-categories/`, fetcher);
-
-  // Handle both array (if pagination off) and paginated response (results array)
-  const serviceCategories = Array.isArray(categories) ? categories : (categories?.results || []);
-
-  useEffect(() => {
-    setMounted(true);
-    if (typeof window !== 'undefined') {
-      setIsLoggedIn(localStorage.getItem('isLoggedIn') === 'true');
-      updateCartCount();
-
-      const handleStorageChange = () => {
-        updateCartCount();
-      };
-      window.addEventListener('storage', handleStorageChange);
-      window.addEventListener('cartUpdated', handleStorageChange);
-
-      return () => {
-        window.removeEventListener('storage', handleStorageChange);
-        window.removeEventListener('cartUpdated', handleStorageChange);
-      };
-    }
-  }, []);
-
-  const updateCartCount = () => {
-    if (typeof window !== 'undefined') {
-      const items = localStorage.getItem('cartItems');
-      setCartCount(items ? JSON.parse(items).length : 0);
-    }
-  };
-
-  const handleLogout = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('isLoggedIn');
-      localStorage.removeItem('userEmail');
-      localStorage.removeItem('userName');
-    }
-    setIsLoggedIn(false);
-    window.location.href = '/';
-  };
 
   return (
     <header className="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 shadow-lg fixed top-0 left-0 right-0 z-50 overflow-visible">
@@ -83,8 +36,14 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden xl:flex items-center space-x-1 xl:space-x-2">
-            
-            {serviceCategories.map((category: any) => (
+            <a
+              href="/"
+              className="px-4 py-2 text-slate-200 hover:bg-cyan-500/10 hover:text-cyan-200 transition-all duration-300 text-sm font-medium rounded-lg"
+            >
+              Home
+            </a>
+
+            {categories.map((category) => (
               <div
                 key={category.id}
                 className="relative group"
@@ -106,7 +65,7 @@ export default function Header() {
                 {/* Dropdown Menu */}
                 {activeMenu === category.name && (
                   <div className="absolute left-0 top-full mt-0 w-64 bg-gradient-to-br from-slate-900/95 via-blue-900/95 to-slate-800/95 backdrop-blur-lg shadow-2xl rounded-md py-2 border border-cyan-500/30 z-50">
-                    {category.services.map((service: any) => (
+                    {category.services.map((service) => (
                       <a
                         key={service.id}
                         href={`/services/${service.id}`}
@@ -121,55 +80,12 @@ export default function Header() {
               </div>
             ))}
 
-            {/* User Account / Login */}
-            {mounted && (
-              <>
-                {isLoggedIn ? (
-                  <div className="flex items-center space-x-3">
-                    {/* Cart Icon with Badge */}
-                    <a
-                      href="/checkout"
-                      className="relative p-2 text-slate-200 hover:text-cyan-300 transition hover:bg-cyan-500/10 rounded-lg"
-                      title="View Cart"
-                    >
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                      </svg>
-                      {cartCount > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
-                          {cartCount}
-                        </span>
-                      )}
-                    </a>
-
-                    {/* Dashboard Link */}
-                    <a
-                      href="/user_dashboard"
-                      className="flex items-center space-x-2 px-3 py-2 text-slate-200 hover:text-cyan-300 transition hover:bg-cyan-500/10 rounded-lg"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                      <span className="text-sm font-medium">Dashboard</span>
-                    </a>
-                    {/* Logout Button */}
-                    <button
-                      onClick={handleLogout}
-                      className="px-4 py-2 text-sm font-medium text-red-300 hover:text-red-200 transition"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                ) : (
-                  <a
-                    href="/login"
-                    className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-6 py-2.5 rounded-md hover:from-cyan-600 hover:to-blue-700 transition font-medium text-sm shadow-lg hover:shadow-cyan-500/50 transform hover:-translate-y-0.5"
-                  >
-                    Login
-                  </a>
-                )}
-              </>
-            )}
+            <a
+              href="/contact"
+              className="px-4 py-2 text-slate-200 hover:bg-cyan-500/10 hover:text-cyan-200 transition-all duration-300 text-sm font-medium rounded-lg"
+            >
+              Contact
+            </a>
           </nav>
 
           {/* Mobile menu button */}
@@ -204,7 +120,7 @@ export default function Header() {
               Home
             </a>
 
-            {serviceCategories.map((category: any) => (
+            {categories.map((category) => (
               <div key={category.id}>
                 <button
                   suppressHydrationWarning
@@ -223,7 +139,7 @@ export default function Header() {
                 </button>
                 {activeMobileMenu === category.name && (
                   <div className="ml-4 mt-1 space-y-1">
-                    {category.services.map((service: any) => (
+                    {category.services.map((service) => (
                       <a
                         key={service.id}
                         href={`/services/${service.id}`}
@@ -237,62 +153,13 @@ export default function Header() {
                 )}
               </div>
             ))}
-            {mounted && (
-              <div className="pt-3 border-t border-cyan-500/30">
-                {isLoggedIn ? (
-                  <div className="space-y-2">
-                    {/* Cart Link Mobile */}
-                    <a
-                      href="/checkout"
-                      className="flex items-center justify-between px-3 py-2 rounded-md text-slate-200 hover:bg-cyan-500/20 font-medium"
-                      onClick={() => setMobileOpen(false)}
-                    >
-                      <span className="flex items-center">
-                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                        My Cart
-                      </span>
-                      {cartCount > 0 && (
-                        <span className="bg-red-500 text-white text-xs font-bold rounded-full px-2 py-1">
-                          {cartCount}
-                        </span>
-                      )}
-                    </a>
-
-                    {/* Dashboard Link Mobile */}
-                    <a
-                      href="/user_dashboard"
-                      className="flex items-center px-3 py-2 rounded-md text-slate-200 hover:bg-cyan-500/20 font-medium"
-                      onClick={() => setMobileOpen(false)}
-                    >
-                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                      My Dashboard
-                    </a>
-
-                    <button
-                      onClick={() => {
-                        handleLogout();
-                        setMobileOpen(false);
-                      }}
-                      className="w-full text-left px-3 py-2 rounded-md text-red-300 hover:bg-red-900/20 font-medium"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                ) : (
-                  <a
-                    href="/login"
-                    className="block w-full text-center bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-5 py-2.5 rounded-md hover:from-cyan-600 hover:to-blue-700 transition font-medium shadow-lg"
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    Login
-                  </a>
-                )}
-              </div>
-            )}
+            <a
+              href="/contact"
+              className="block px-3 py-2 rounded-md text-slate-200 hover:bg-cyan-500/20 transition font-medium"
+              onClick={() => setMobileOpen(false)}
+            >
+              Contact
+            </a>
           </div>
         </div>
       )}

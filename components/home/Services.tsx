@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { categories } from '../../data/serviceData';
 
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
@@ -29,15 +30,9 @@ function Card({ children, onClick, className = "" }: CardProps) {
   );
 }
 
-interface ServiceCategory {
-  id: number;
-  name: string;
-  description: string;
-  icon?: string;
-  services: any[];
-}
 
-// Map category names to icons (temporary solution until backend supports icons)
+
+// Map category names to icons (fallback if not in data)
 const getCategoryIcon = (name: string) => {
   const lowerName = name.toLowerCase();
   if (lowerName.includes('registration')) return '🏢';
@@ -52,55 +47,18 @@ const getCategoryIcon = (name: string) => {
 export default function Services() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [categories, setCategories] = useState<ServiceCategory[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setMounted(true);
-    if (typeof window !== 'undefined') {
-      const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
-      setIsLoggedIn(loggedIn);
-    }
-
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/service-categories/`);
-        if (response.ok) {
-          const data = await response.json();
-          setCategories(data.results || data);
-        }
-      } catch (error) {
-        console.error('Failed to fetch categories:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCategories();
   }, []);
 
   const handleCategoryClick = (categoryId: number) => {
     router.push(`/services/category/${categoryId}`);
   };
 
-  // Handle "Get Started" - check auth and redirect appropriately
-  const handleGetStarted = () => {
-    if (isLoggedIn) {
-      // Check if there are items in cart
-      const cartItems = typeof window !== 'undefined'
-        ? localStorage.getItem('cartItems')
-        : null;
-
-      if (cartItems && JSON.parse(cartItems).length > 0) {
-        router.push('/checkout');
-      } else {
-        router.push('/user_dashboard');
-      }
-    } else {
-      router.push('/login');
-    }
-  };
+  const handleContact = () => {
+    router.push('/contact');
+  }
 
   return (
     <section id="services" className="relative py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 overflow-hidden">
@@ -159,48 +117,42 @@ export default function Services() {
         <SectionHeading>Our Service Categories</SectionHeading>
 
         {/* Category Cards */}
-        {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400"></div>
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {categories.map((category) => (
-              <div
-                key={category.id}
-                onClick={() => handleCategoryClick(category.id)}
-                className="cursor-pointer group transform hover:-translate-y-2 transition-all duration-300"
-              >
-                <Card>
-                  <div className="flex items-start mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center text-2xl mr-3 group-hover:shadow-lg group-hover:shadow-cyan-500/50 transition-all duration-300">
-                      {category.icon || getCategoryIcon(category.name)}
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-xl text-white group-hover:text-cyan-300 transition-colors">
-                        {category.name}
-                      </h3>
-                      <p className="text-sm text-slate-400 mt-1">
-                        {category.services?.length || 0} services available
-                      </p>
-                    </div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {categories.map((category) => (
+            <div
+              key={category.id}
+              onClick={() => handleCategoryClick(category.id)}
+              className="cursor-pointer group transform hover:-translate-y-2 transition-all duration-300"
+            >
+              <Card>
+                <div className="flex items-start mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center text-2xl mr-3 group-hover:shadow-lg group-hover:shadow-cyan-500/50 transition-all duration-300">
+                    {category.icon || getCategoryIcon(category.name)}
                   </div>
-                  <p className="text-sm text-slate-300 mb-4 leading-relaxed line-clamp-3">
-                    {category.description}
-                  </p>
-                  <button
-                    suppressHydrationWarning
-                    className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white py-3 rounded-lg hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-cyan-500/30 transform hover:-translate-y-0.5"
-                  >
-                    Explore Services →
-                  </button>
-                </Card>
-              </div>
-            ))}
-          </div>
-        )}
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-xl text-white group-hover:text-cyan-300 transition-colors">
+                      {category.name}
+                    </h3>
+                    <p className="text-sm text-slate-400 mt-1">
+                      {category.services?.length || 0} services available
+                    </p>
+                  </div>
+                </div>
+                <p className="text-sm text-slate-300 mb-4 leading-relaxed line-clamp-3">
+                  {category.description}
+                </p>
+                <button
+                  suppressHydrationWarning
+                  className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white py-3 rounded-lg hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-cyan-500/30 transform hover:-translate-y-0.5"
+                >
+                  Explore Services →
+                </button>
+              </Card>
+            </div>
+          ))}
+        </div>
 
-        {/* Call to Action - Updated with Dashboard Integration */}
+        {/* Call to Action */}
         <div className="mt-16 text-center">
           <div className="bg-gradient-to-br from-slate-900/90 to-blue-900/90 backdrop-blur-md rounded-2xl p-8 border border-cyan-400/20 shadow-2xl max-w-3xl mx-auto">
             <h3 className="text-2xl font-bold text-white mb-3">
@@ -218,80 +170,17 @@ export default function Services() {
                   const ctaSection = document.getElementById('cta-section');
                   if (ctaSection) {
                     ctaSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  } else {
+                    router.push('/contact');
                   }
                 }}
                 className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-8 py-3 rounded-lg hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-cyan-500/30 transform hover:-translate-y-0.5"
               >
                 Contact Our Experts
               </button>
-
-              {/* Get Started / Dashboard Button */}
-              {mounted && (
-                <button
-                  onClick={handleGetStarted}
-                  className="bg-gradient-to-r from-purple-500 to-pink-600 text-white px-8 py-3 rounded-lg hover:from-purple-600 hover:to-pink-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-purple-500/30 transform hover:-translate-y-0.5 flex items-center justify-center gap-2 mx-auto sm:mx-0"
-                >
-                  {isLoggedIn ? (
-                    <>
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                      </svg>
-                      My Dashboard
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                      </svg>
-                      Get Started Now
-                    </>
-                  )}
-                </button>
-              )}
             </div>
           </div>
         </div>
-
-        {/* Quick Stats Section (shows if logged in) */}
-        {mounted && isLoggedIn && (
-          <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            <div className="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 backdrop-blur-md rounded-xl p-6 border border-cyan-400/20 text-center">
-              <div className="text-3xl mb-2">🛒</div>
-              <h4 className="text-lg font-bold text-white mb-1">Quick Access</h4>
-              <p className="text-sm text-slate-300 mb-3">View your cart</p>
-              <button
-                onClick={() => router.push('/checkout')}
-                className="text-cyan-400 hover:text-cyan-300 text-sm font-medium"
-              >
-                Go to Cart →
-              </button>
-            </div>
-
-            <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 backdrop-blur-md rounded-xl p-6 border border-purple-400/20 text-center">
-              <div className="text-3xl mb-2">📦</div>
-              <h4 className="text-lg font-bold text-white mb-1">Track Orders</h4>
-              <p className="text-sm text-slate-300 mb-3">Monitor progress</p>
-              <button
-                onClick={() => router.push('/user_dashboard')}
-                className="text-purple-400 hover:text-purple-300 text-sm font-medium"
-              >
-                View Orders →
-              </button>
-            </div>
-
-            <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 backdrop-blur-md rounded-xl p-6 border border-green-400/20 text-center">
-              <div className="text-3xl mb-2">📊</div>
-              <h4 className="text-lg font-bold text-white mb-1">Dashboard</h4>
-              <p className="text-sm text-slate-300 mb-3">Full overview</p>
-              <button
-                onClick={() => router.push('/user_dashboard')}
-                className="text-green-400 hover:text-green-300 text-sm font-medium"
-              >
-                Open Dashboard →
-              </button>
-            </div>
-          </div>
-        )}
       </div>
 
       <style jsx>{`
