@@ -211,7 +211,7 @@ export default function ServiceDetailPage() {
                           </span>
                         )}
                         <h3 className="text-xl font-bold text-gray-900 mb-2">{plan.name}</h3>
-                        <div className="text-3xl font-bold text-blue-600 mb-4">₹{plan.price}</div>
+
                         <ul className="space-y-2 mb-4">
                           {parseList(plan.features).map((feature, idx) => (
                             <li key={idx} className="flex items-start text-sm text-gray-600">
@@ -321,16 +321,7 @@ export default function ServiceDetailPage() {
                 </div>
               </div>
 
-              {/* Pricing */}
-              {service.plans && service.plans.length > 0 && (
-                <div className="text-center mb-6 pb-6 border-b">
-                  <div className="text-sm text-gray-600 mb-2">Starting at</div>
-                  <div className="text-4xl font-bold text-gray-900">
-                    ₹{Math.min(...service.plans.map(p => parseFloat(p.price)))}
-                  </div>
-                  <div className="text-sm text-gray-500 mt-2">+ Government fees (if applicable)</div>
-                </div>
-              )}
+
 
               {/* CTA Buttons */}
               <div className="space-y-3 mb-6">
